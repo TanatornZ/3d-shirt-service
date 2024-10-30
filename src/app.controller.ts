@@ -1,17 +1,26 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ConfigService } from '@nestjs/config';
+import { FirebaseService } from './firebase/firebase.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    private configService: ConfigService,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   @Get()
-  getHello(): string {
-    const dbUser = this.configService.get<string>('DATABASE_USER');
-    return dbUser;
+  async getHello(): Promise<any> {
+    return this.appService.getHello();
+  }
+
+  @Get('/firebase')
+  async getFirebaseDocument(): Promise<any> {
+    try {
+      return this.firebaseService.getAllDocuments('test');
+    } catch (error) {
+      console.error('Error getting documents:', error);
+      throw error;
+    }
   }
 }
