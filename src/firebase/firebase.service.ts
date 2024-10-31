@@ -1,5 +1,3 @@
-// src/firebase/firebase.service.ts
-
 import {
   Injectable,
   OnApplicationBootstrap,
@@ -9,16 +7,15 @@ import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 import { join } from 'path';
-import * as fs from 'fs';
-import * as util from 'util';
+import { Bucket } from '@google-cloud/storage';
 
-const unlinkFile = util.promisify(fs.unlink); // For deleting local files after upload
+// const unlinkFile = util.promisify(fs.unlink); // For deleting local files after upload
 
 @Injectable()
 export class FirebaseService implements OnApplicationBootstrap {
   constructor(private readonly configService: ConfigService) {}
   private firebaseApp: admin.app.App;
-  private bucket;
+  private bucket: Bucket;
 
   onApplicationBootstrap() {
     if (!admin.apps.length) {
@@ -31,8 +28,11 @@ export class FirebaseService implements OnApplicationBootstrap {
       };
       this.firebaseApp = admin.initializeApp({
         credential: admin.credential.cert(adminConfig),
+        storageBucket: this.configService.get<string>(
+          'FIREBASE_STORAGE_BACKET',
+        ),
       });
-      this.bucket = admin.storage().bucket('test');
+      this.bucket = admin.storage().bucket();
       console.log('Firebase initialized successfully');
     } else {
       this.firebaseApp = admin.app(); // reuse existing app if already initialized
@@ -86,25 +86,16 @@ export class FirebaseService implements OnApplicationBootstrap {
     const fileName = `${uuidv4()}_${file.originalname}`;
     const filePath = join(__dirname, '../../uploads', fileName);
 
-    // Temporarily save the image to the server's file system
-    fs.writeFileSync(filePath, file.buffer);
+    // upload image to real project
+    // fs.writeFileSync(filePath, file.buffer);
 
-    // Upload file to Firebase Storage
-    // upgrade firebase plan
-    const destination = `images/${fileName}`;
-    await this.bucket.upload(filePath, {
-      destination,
-      metadata: {
-        metadata: {
-          firebaseStorageDownloadTokens: uuidv4(), // Unique token for public URL
-        },
-      },
-    });
+    const destination = `${fileName}`;
 
-    // Remove file from local storage
-    await unlinkFile(filePath);
+    await this.bucket.file(destination).save(file.buffer);
 
-    // Get public URL
+    // remove image to real project
+    // await unlinkFile(filePath);
+
     const fileUrl = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURIComponent(destination)}?alt=media`;
     return fileUrl;
   };
@@ -113,7 +104,6 @@ export class FirebaseService implements OnApplicationBootstrap {
     try {
       const file = this.bucket.file(filePath);
       await file.delete();
-      console.log(`Image deleted successfully: ${filePath}`);
     } catch (error) {
       console.error(`Failed to delete image: ${error.message}`);
       throw new Error(`Failed to delete image: ${error.message}`);
