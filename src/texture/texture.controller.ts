@@ -2,16 +2,10 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
 import { TextureService } from './texture.service';
-import { CreateTextureDto } from './dto/create-texture.dto';
-import { UpdateTextureDto } from './dto/update-texture.dto';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
