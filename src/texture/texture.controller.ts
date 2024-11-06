@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { TextureService } from './texture.service';
 import { CreateTextureDto } from './dto/create-texture.dto';
 import { UpdateTextureDto } from './dto/update-texture.dto';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('texture')
 export class TextureController {
@@ -20,8 +23,9 @@ export class TextureController {
   ) {}
 
   @Post()
-  create(@Body() createTextureDto: CreateTextureDto) {
-    return this.textureService.create(createTextureDto);
+  @UseInterceptors(FileInterceptor('file'))
+  upload(@UploadedFile() file: Express.Multer.File) {
+    return this.firebaseService.uploadImage(file);
   }
 
   @Get()

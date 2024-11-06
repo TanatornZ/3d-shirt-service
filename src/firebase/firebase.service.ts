@@ -6,7 +6,6 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
-import { join } from 'path';
 import { Bucket } from '@google-cloud/storage';
 
 // const unlinkFile = util.promisify(fs.unlink); // For deleting local files after upload
@@ -84,12 +83,11 @@ export class FirebaseService implements OnApplicationBootstrap {
 
   uploadImage = async (file: Express.Multer.File) => {
     const fileName = `${uuidv4()}_${file.originalname}`;
-    const filePath = join(__dirname, '../../uploads', fileName);
-
+    // const filePath = join(__dirname, '../../uploads', fileName);
     // upload image to real project
     // fs.writeFileSync(filePath, file.buffer);
 
-    const destination = `${fileName}`;
+    const destination = `images/${fileName}`;
 
     await this.bucket.file(destination).save(file.buffer);
 
