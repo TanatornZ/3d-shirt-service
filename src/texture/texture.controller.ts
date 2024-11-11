@@ -4,6 +4,9 @@ import {
   Post,
   UseInterceptors,
   UploadedFile,
+  Delete,
+  Param,
+  Body,
 } from '@nestjs/common';
 import { TextureService } from './texture.service';
 import { FirebaseService } from 'src/firebase/firebase.service';
@@ -11,10 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('texture')
 export class TextureController {
-  constructor(
-    private readonly textureService: TextureService,
-    private firebaseService: FirebaseService,
-  ) {}
+  constructor(private firebaseService: FirebaseService) {}
 
   @Post()
   @UseInterceptors(FileInterceptor('file'))
@@ -25,5 +25,10 @@ export class TextureController {
   @Get()
   findAll() {
     return this.firebaseService.getAllImage();
+  }
+
+  @Delete()
+  deleteTexture(@Body() deleteTexture: { pathImage: string }) {
+    return this.firebaseService.deleteImage(deleteTexture.pathImage);
   }
 }
