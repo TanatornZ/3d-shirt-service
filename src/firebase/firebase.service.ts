@@ -98,10 +98,11 @@ export class FirebaseService implements OnApplicationBootstrap {
     return fileUrl;
   };
 
-  async deleteImage(filePath: string): Promise<void> {
+  async deleteImage(filePath: string): Promise<string> {
     try {
       const file = this.bucket.file(filePath);
       await file.delete();
+      return 'image is deleted!';
     } catch (error) {
       console.error(`Failed to delete image: ${error.message}`);
       throw new Error(`Failed to delete image: ${error.message}`);
@@ -111,12 +112,14 @@ export class FirebaseService implements OnApplicationBootstrap {
   async getAllImage(): Promise<any> {
     try {
       const [files] = await this.bucket.getFiles({ prefix: 'images/' });
-
       const urls = files
         .filter((file) => /\.(jpg|jpeg|png|gif)$/i.test(file.name))
         .map((file) => {
-          const filePath = file.name; // e.g., "images/filename.jpg"
-          return `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
+          const filePath = file.name;
+          return {
+            fileURL: `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`,
+            filePath,
+          };
         });
       return urls;
     } catch (error) {
