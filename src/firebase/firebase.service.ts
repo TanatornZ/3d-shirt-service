@@ -83,19 +83,15 @@ export class FirebaseService implements OnApplicationBootstrap {
 
   uploadImage = async (file: Express.Multer.File) => {
     const fileName = `${uuidv4()}_${file.originalname}`;
-    // const filePath = join(__dirname, '../../uploads', fileName);
-    // upload image to real project
-    // fs.writeFileSync(filePath, file.buffer);
+    const filePath = `images/${fileName}`;
 
-    const destination = `images/${fileName}`;
+    await this.bucket.file(filePath).save(file.buffer);
 
-    await this.bucket.file(destination).save(file.buffer);
-
-    // remove image to real project
-    // await unlinkFile(filePath);
-
-    const fileUrl = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURIComponent(destination)}?alt=media`;
-    return fileUrl;
+    const fileURL = `https://firebasestorage.googleapis.com/v0/b/${this.bucket.name}/o/${encodeURIComponent(filePath)}?alt=media`;
+    return {
+      fileURL,
+      filePath,
+    };
   };
 
   async deleteImage(filePath: string): Promise<string> {
