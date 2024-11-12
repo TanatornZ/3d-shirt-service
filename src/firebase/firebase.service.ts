@@ -114,6 +114,11 @@ export class FirebaseService implements OnApplicationBootstrap {
       const [files] = await this.bucket.getFiles({ prefix: 'images/' });
       const urls = files
         .filter((file) => /\.(jpg|jpeg|png|gif)$/i.test(file.name))
+        .sort(
+          (a, b) =>
+            new Date(b.metadata.timeCreated).getTime() -
+            new Date(a.metadata.timeCreated).getTime(),
+        )
         .map((file) => {
           const filePath = file.name;
           return {
